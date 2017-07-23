@@ -1,0 +1,108 @@
+create table App (
+	A_id int not null ,
+	d_id int not null,
+	visit int ,
+	price int,
+
+	primary key (A_id),
+	FOREIGN KEY (d_id) REFERENCES Developer(d_id)
+);
+
+create table Developer(
+d_id int not null ,
+name varchar(255),
+primary key(d_id)
+);
+
+create table Users(
+u_id int not null,
+name varchar(255),
+primary key(u_id)
+);
+
+create table Category (
+A_id int not null,
+category varchar(255),
+FOREIGN KEY (A_id) REFERENCES App(A_id)
+);
+
+create table Rating(
+u_id int not null,
+A_id int not null ,
+v_id int,
+rate int not null,
+FOREIGN KEY (A_id) REFERENCES App(A_id),
+FOREIGN KEY (u_id) REFERENCES Users(u_id),
+FOREIGN KEY (v_id) REFERENCES Version(v_id)
+
+);
+
+create table Version(
+v_id int not null,
+A_id int not null,
+timeRelease timestamp ,
+FOREIGN key(A_id) REFERENCES App(A_id),
+primary key (v_id)
+
+);
+
+create table Download(
+A_id int,
+v_id int,
+u_id int,
+FOREIGN key(A_id) REFERENCES App(A_id),
+FOREIGN key(v_id) REFERENCES Version(v_id),
+FOREIGN key(u_id) REFERENCES Users(u_id)
+);
+
+
+create view avgVisit as
+	select d_id,Avg(visit) as avgV
+	from App 
+	group by d_id;
+
+
+select t.name
+	from(select developer.name,avgVisit.avgV 
+	from avgVisit natural join Developer
+    order by avgVisit.avgV desc 
+    LIMIT 10) as t;
+
+
+
+create view rateVersion as
+	select A_id,v_id,Avg(rate) as avg
+	from Rating
+	group by A_id,v_id
+	
+select A_id
+from rateVersion as r1 join rateVersion as r2 using (A_id)
+where r1.v_id=1 and r2.v_id=2 and r1.avg>r2.avg ;
+
+
+
+
+create view countDownload as
+	select A_id,count(*) as c
+	from Download
+	group by A_id;
+
+create view InvestOfDownload as
+	select category,sum(c*price) as sumD
+	from countDownload natural join App natural join Category
+	group by category;
+
+select t.category
+from   (select category,max(sumD)
+		from InvestOfDownload) as t;
+
+
+create view countRating as
+	select A_id,count(*) as r
+	from Rating
+	group by A_id;
+
+
+select App.A_id 
+	from countRating natural join countDownload natural join App
+	where countRating.r+countDownload.c <App.visit

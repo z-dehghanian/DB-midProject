@@ -1,0 +1,55 @@
+CREATE TABLE jobs(
+   J_id INT NOT NULL AUTO_INCREMENT,
+   jobsOrder VARCHAR(255) NOT NULL,
+    Salary int ,
+    hours int,
+    M_id INT,
+   MinEducation VARCHAR(255) NOT NULL,
+   PRIMARY KEY ( J_id ),
+  FOREIGN KEY (J_id) REFERENCES workers(W_id)
+);
+
+
+CREATE TABLE request(
+   R_id INT NOT NULL AUTO_INCREMENT,
+     J_id INT NOT NULL,
+   Education VARCHAR(255) ,
+    LastName varchar(255),
+    FirstName varchar(255),
+    ExpectedSalary INT,
+    submission_date DATE NOT NULL,
+    State varchar(255),
+  
+   PRIMARY KEY ( R_id ),
+  FOREIGN KEY (J_id) REFERENCES jobs(J_id)
+);
+
+create table interview (
+	i_id int AUTO_INCREMENT ,
+    j_id int ,
+    r_id int ,
+    w_id int ,
+    interview_date date not null ,
+    start_time  int ,
+    end_time int  ,
+     PRIMARY KEY ( i_id ),
+     FOREIGN KEY (J_id) REFERENCES jobs(J_id),
+     FOREIGN KEY (r_id) REFERENCES request(r_id),
+     FOREIGN KEY (w_id) REFERENCES workers(w_id)
+
+);
+create view count_interview as 
+ select w_id,count(*) as number
+ from interview
+ group by w_id
+ having number > 2 ;
+ select FirstName,LastName
+ from  count_i natural join workers;
+
+create view avSalary AS
+select j_id ,AVG(ExpectedSalary) as midSal
+from   jobs NATURAL JOIN request
+group by j_id ;
+select JobOrder
+from avSalary NATURAL JOIN jobs
+where midSal > Salary ;
